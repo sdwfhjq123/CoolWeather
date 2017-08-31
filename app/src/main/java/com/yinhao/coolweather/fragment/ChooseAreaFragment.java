@@ -1,6 +1,7 @@
 package com.yinhao.coolweather.fragment;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -16,9 +17,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yinhao.coolweather.R;
+import com.yinhao.coolweather.WeatherActivity;
 import com.yinhao.coolweather.db.City;
 import com.yinhao.coolweather.db.County;
 import com.yinhao.coolweather.db.Province;
+import com.yinhao.coolweather.gson.Weather;
 import com.yinhao.coolweather.util.ConstantValue;
 import com.yinhao.coolweather.util.HttpUtil;
 import com.yinhao.coolweather.util.Utility;
@@ -94,12 +97,18 @@ public class ChooseAreaFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (currentLevel == LEVEL_PROVINCE) {
                     selectedProvince = provinceList.get(position);
-                    //Log.i(TAG, "onItemClick: selectedProvince " + selectedProvince.toString());
+                    //Log.i(TAG, "onItemClick: selectedProvince position" + position);
                     queryCities();
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     //Log.i(TAG, "onItemClick: selectedCity " + selectedCity.toString());
                     queryCounties();
+                } else if (currentLevel == LEVEL_COUNTY) {
+                    String weatherId = countyList.get(position).getWeatherId();
+                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    intent.putExtra("weather_id", weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -122,7 +131,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCounties() {
         titleText.setText(selectedCity.getCityName());
         backButton.setVisibility(View.VISIBLE);
-        countyList = DataSupport.where("cityid=?", String.valueOf(selectedCity.getId())).find(County.class);
+        countyList = DataSupport.where("cityid = ?", String.valueOf(selectedCity.getId())).find(County.class);
         //Log.i(TAG, "queryCounties: seletedCity.getId() " + selectedCity.getId());
         if (countyList.size() > 0) {
             dataList.clear();
@@ -146,7 +155,8 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCities() {
         titleText.setText(selectedProvince.getProvinceName());//设置title的名称
         backButton.setVisibility(View.VISIBLE);
-        cityList = DataSupport.where("provinceid =?", String.valueOf(selectedProvince.getId())).find(City.class);
+        //select * from city where provinceid = selectedProvince.getId();
+        cityList = DataSupport.where("provinceid = ?", String.valueOf(selectedProvince.getId())).find(City.class);
         //Log.i(TAG, "queryCities: selectedProvince.getId() " + selectedProvince.getId());
         if (cityList.size() > 0) {
             dataList.clear();
